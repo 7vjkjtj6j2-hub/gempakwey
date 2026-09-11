@@ -1,0 +1,5 @@
+'use client';
+import {useActionState} from 'react';
+import {saveShipping} from './actions';
+import {Submit} from '../submit';
+export function ShippingForm({west,east,updatedAt}:{west:number;east:number;updatedAt:string}){const [state,action]=useActionState(saveShipping,{error:''});return <form action={action}><input name="updated_at" type="hidden" value={updatedAt}/>{state.error&&<p role="alert" className="notice error">{state.error}</p>}{state.success&&<p role="status" className="notice success">{state.success}</p>}<div className="grid"><label>Semenanjung (RM)<input name="west" type="number" min="0" max="1000" step="0.01" required defaultValue={(west/100).toFixed(2)}/></label><label>Sabah / Sarawak (RM)<input name="east" type="number" min="0" max="1000" step="0.01" required defaultValue={(east/100).toFixed(2)}/></label></div><p className="form-note">Kadar tetap bagi satu order. Penghantaran ke Labuan dan luar Malaysia belum ditetapkan.</p><Submit>Simpan caj penghantaran</Submit></form>}

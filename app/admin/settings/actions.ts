@@ -1,0 +1,5 @@
+'use server';
+import {revalidatePath} from 'next/cache';
+import {requireOwner} from '../../../lib/auth';
+import {priceCents} from '../../../lib/hq-input';
+export async function saveShipping(_:{error:string;success?:string},form:FormData){const {supabase}=await requireOwner();try{const west=priceCents(form.get('west'),100000),east=priceCents(form.get('east'),100000);const expected=String(form.get('updated_at')??'');if(!expected)throw new Error('Muat semula tetapan terlebih dahulu.');const {data,error}=await supabase.from('hq_settings').update({shipping_west_cents:west,shipping_east_cents:east,updated_at:new Date().toISOString()}).eq('id',true).eq('updated_at',expected).select('id').maybeSingle();if(error)throw new Error('Tetapan belum disimpan.');if(!data)throw new Error('Tetapan telah berubah. Muat semula sebelum simpan.');revalidatePath('/admin/settings');return {error:'',success:'Caj penghantaran disimpan.'};}catch(e){return {error:e instanceof Error?e.message:'Semak caj penghantaran.'};}}

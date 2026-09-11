@@ -1,0 +1,5 @@
+'use client';
+import Link from 'next/link';
+import {usePathname,useSearchParams} from 'next/navigation';
+const links=[{href:'/admin',label:'Order & packing',key:'orders',hint:'01'},{href:'/admin?view=products',label:'Produk & stok',key:'products',hint:'02'},{href:'/admin/stores',label:'Kedai & paparan',key:'stores',hint:'03'},{href:'/admin/settings',label:'Tetapan',key:'settings',hint:'04'}];
+export function HQNavigation(){const path=usePathname(),query=useSearchParams();if(path==='/admin/login'||path==='/admin/access')return null;const current=path.includes('/products')||query.get('view')==='products'?'products':path.includes('/stores')||path.includes('/appearance')?'stores':path.includes('/settings')?'settings':'orders';return <nav className="hq-navigation" aria-label="Menu HQ"><div className="nav-label">RUANG KERJA</div>{links.map(l=><Link key={l.key} href={l.href} aria-current={current===l.key?'page':undefined}><span>{l.hint}</span>{l.label}</Link>)}<div className="nav-foot">GempakWey HQ<small>Satu tempat untuk semua kedai.</small></div></nav>}

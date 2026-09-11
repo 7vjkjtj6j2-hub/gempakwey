@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {priceCents,parseVariant} from '../lib/hq-input.ts';
+assert.equal(priceCents('12'),1200);assert.equal(priceCents('15'),1500);assert.equal(priceCents('0.29'),29);
+for(const n of ['-1','1.001','1e3','Infinity',''])assert.throws(()=>priceCents(n));
+const valid={product_id:'11111111-1111-1111-1111-111111111111',sku:'A-M',size:'M',color:'Black',price:'39.90',stock:'10',active:'on',reason:'Received stock'};
+const parse=(x={})=>{const f=new FormData();for(const [k,v]of Object.entries({...valid,...x}))f.set(k,v);return parseVariant(f)};
+assert.equal(parse().p_price_cents,3990);assert.equal(parse().p_expected_updated_at,null);
+for(const stock of ['-1','1.5','1e3','1000001'])assert.throws(()=>parse({stock}));
+assert.throws(()=>parse({variant_id:valid.product_id}));
+assert.throws(()=>parse({reason:''}));assert.throws(()=>parse({product_id:'bad'}));
+assert.equal(parse({variant_id:valid.product_id,updated_at:'2026-09-11T00:00:00.123456Z'}).p_expected_updated_at,'2026-09-11T00:00:00.123456Z');
+console.log('PASS: HQ shipping/price precision, stock bounds, required audit reason and concurrency timestamp');
