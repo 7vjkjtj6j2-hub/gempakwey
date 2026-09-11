@@ -1,3 +1,5 @@
+import {ProductRows,type CatalogRow} from './product-rows';
+import {mediaUrl} from '../../lib/storefront-content';
 import Link from 'next/link';
 import {requireOwner} from '../../lib/auth';
 import {logout} from './login/actions';
@@ -15,11 +17,11 @@ export default async function Dashboard({searchParams}:{searchParams:Promise<{br
  const queryString=(v:string,p=1)=>new URLSearchParams({view:v,brand,payment,q:term,fulfillment,page:String(p)}).toString();
  let content;
  if(view==='products') {
-  let query=supabase.from('products').select('id,name,slug,status,brands(name),product_variants(sku,price_cents,size,color,inventory(on_hand,reserved))',{count:'exact'}).order('created_at',{ascending:false}).order('id').range((page-1)*30,page*30-1);
+  let query=supabase.from('products').select('id,name,slug,description,category,status,brands(name),product_images(storage_path,position),product_variants(id,sku,price_cents,size,color,active,inventory(on_hand,reserved,updated_at))',{count:'exact'}).order('created_at',{ascending:false}).order('id').range((page-1)*30,page*30-1);
   if(activeBrand)query=query.eq('brand_id',activeBrand.id);
   if(term)query=query.ilike('name',`%${term.replace(/[\\%_]/g,'\\$&')}%`);
   const {data,error,count}=missing?{data:[],error:null,count:0}:await query;if(error)throw new Error('Katalog tidak dapat dimuatkan.');
-  content=<><div className="row"><h2>Produk · {count??0}</h2><Link className="button" href={`/admin/products/new${activeBrand?`?brand=${activeBrand.id}`:''}`}>+ Tambah produk</Link></div>{!data?.length?<p>Belum ada produk untuk pilihan ini.</p>:<div className="scroll"><table><thead><tr><th>Produk / kedai</th><th>Varian</th><th>Harga</th><th>Boleh dijual</th><th>Status</th></tr></thead><tbody>{data.map(p=><tr key={p.id}><td><Link href={`/admin/products/${p.id}`}>{p.name}</Link><small>{[p.brands].flat().map(b=>b?.name).join(', ')}</small></td><td>{p.product_variants.map(v=>`${v.sku} · ${v.size} · ${v.color}`).join(', ')}</td><td>{p.product_variants.map(v=>rm(v.price_cents)).join(', ')}</td><td>{p.product_variants.reduce((sum,v)=>sum+[v.inventory].flat().reduce((n,i)=>n+(i?i.on_hand-i.reserved:0),0),0)}</td><td><span className={`badge ${p.status}`}>{p.status==='draft'?'Draf':p.status==='published'?'Dipaparkan':'Arkib'}</span></td></tr>)}</tbody></table></div>}<Pagination page={page} count={count??0} url={p=>`?${queryString(view,p)}`}/></>;
+  content=<><div className="row"><h2>Produk · {count??0}</h2><Link className="button" href={`/admin/products/new${activeBrand?`?brand=${activeBrand.id}`:''}`}>+ Tambah produk</Link></div>{!data?.length?<p>Belum ada produk untuk pilihan ini.</p>:<ProductRows products={data.map(p=>({...p,brandName:[p.brands].flat().map(b=>b?.name).join(', '),image:mediaUrl([...p.product_images].sort((a,b)=>a.position-b.position)[0]?.storage_path??null)})) as unknown as CatalogRow[]}/>}<Pagination page={page} count={count??0} url={p=>`?${queryString(view,p)}`}/></>;
  } else {
   // Filter via a second relation so matching orders retain ALL item/brand snapshots.
   const select=(activeBrand?'id,order_number,customer_name,created_at,total_cents,payment_status,order_status,order_items(brand_name,quantity),fulfillments(status),matching:order_items!inner(product_variants!inner(products!inner(brand_id)))':'id,order_number,customer_name,created_at,total_cents,payment_status,order_status,order_items(brand_name,quantity),fulfillments(status)').replaceAll('fulfillments(status)',fulfillment?'fulfillments!inner(status)':'fulfillments(status)');
