@@ -1,0 +1,33 @@
+'use client';
+import {useState,useTransition} from 'react';
+import {useRouter} from 'next/navigation';
+import type {StoreBlock} from '../../../lib/storefront-content';
+import {mediaUrl} from '../../../lib/storefront-content';
+import {saveBlock,archiveBlock,saveSlider,uploadStoreImage} from './actions';
+
+function ImageField({name,label,value,onChange,busy,onBusy}:{name:string;label:string;value:string|null;onChange:(value:string|null)=>void;busy:boolean;onBusy:(value:boolean)=>void}) {
+ const [error,setError]=useState('');
+ return <div className="image-upload"><label>{label}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async e=>{const file=e.currentTarget.files?.[0];if(!file)return;setError('');onBusy(true);try{if(file.size>3*1024*1024)throw new Error('Maksimum 3 MB setiap gambar.');const form=new FormData();form.set('image',file);const result=await uploadStoreImage(form);if(result.error)throw new Error(result.error);onChange(result.path!);}catch(err){setError(err instanceof Error?err.message:'Upload gagal.');}finally{onBusy(false);}}}/></label><input type="hidden" name={name} value={value??''}/>{value&&<div className="upload-preview"><img src={mediaUrl(value)} alt="Pratonton gambar yang dipilih"/><button type="button" className="secondary" disabled={busy} onClick={()=>onChange(null)}>Kosongkan gambar</button></div>}{error&&<p className="notice error" role="alert">{error}</p>}</div>;
+}
+export function BlockEditor({block,position=0}:{block?:StoreBlock;position?:number}) {
+ const router=useRouter();const [kind,setKind]=useState(block?.kind??'hero');
+ const [desktop,setDesktop]=useState(block?.storage_path??null);const [mobile,setMobile]=useState(block?.mobile_path??null);const [second,setSecond]=useState(block?.second_path??null);
+ const [uploading,setUploading]=useState(false);const [pending,start]=useTransition();const [message,setMessage]=useState('');const [error,setError]=useState('');const busy=uploading||pending;
+ return <form action={form=>start(async()=>{setMessage('');setError('');try{const result=await saveBlock(form);if(result.error)setError(result.error);else{setMessage(result.success!);router.refresh();}}catch{setError('Simpanan gagal. Sila cuba lagi.');}})} className="card block-editor">
+ <div className="row"><h2>{block?block.heading||'Seksyen tanpa tajuk':'Tambah banner / seksyen'}</h2>{block&&<span className="badge">{block.active?'Dipaparkan':'Disembunyikan'}</span>}</div>
+ <input type="hidden" name="id" value={block?.id??''}/><div className="grid"><label>Format<select name="kind" value={kind} disabled={busy} onChange={e=>setKind(e.target.value as StoreBlock['kind'])}><option value="hero">Hero banner (bahagian paling atas)</option><option value="wide">Banner lebar</option><option value="split">Gambar + teks</option><option value="pair">Dua gambar bersebelahan</option></select></label><label>Nombor susunan<input type="number" name="position" min="0" max="9999" step="1" defaultValue={block?.position??position} required/><small>Nombor kecil dipaparkan dahulu, dalam kumpulan hero atau seksyen tambahan.</small></label></div>
+ <p className="notice">{kind==='hero'?'Hero: desktop 1920 × 900 px; mobile 900 × 1200 px.':kind==='wide'?'Banner lebar: desktop 1920 × 640 px; mobile 900 × 900 px.':kind==='split'?'Gambar + teks: gambar segi empat 1200 × 1200 px.':'Dua gambar: setiap gambar 1200 × 1200 px. Pada telefon, gambar disusun menegak.'} Gambar diisi mengikut bingkai dan boleh terpotong di tepi.</p>
+ <div className="grid"><ImageField name="storage_path" label="Gambar utama / desktop" value={desktop} onChange={setDesktop} busy={busy} onBusy={setUploading}/><ImageField name="mobile_path" label="Gambar mobile (pilihan)" value={mobile} onChange={setMobile} busy={busy} onBusy={setUploading}/>{kind==='pair'?<ImageField name="second_path" label="Gambar kedua" value={second} onChange={setSecond} busy={busy} onBusy={setUploading}/>:<input type="hidden" name="second_path" value={second??''}/>}</div>
+ <small>JPG, PNG atau WebP, maksimum 3 MB. Gambar disimpan sebagai bahan pemasaran awam. Selepas upload, tekan Simpan untuk menggunakannya pada seksyen.</small>
+ <label>Teks alternatif gambar<input name="alt_text" maxLength={300} defaultValue={block?.alt_text} placeholder="Contoh: Topi Heritage hitam dari pandangan hadapan"/></label>
+ <label>Tajuk<input name="heading" maxLength={160} defaultValue={block?.heading}/></label><label>Penerangan<textarea name="body" maxLength={2000} defaultValue={block?.body}/></label>
+ <div className="grid"><label>Teks butang (kosongkan untuk sembunyi)<input name="button_label" maxLength={60} defaultValue={block?.button_label}/></label><label>Pautan butang<input name="link" maxLength={300} defaultValue={block?.link??'#collection'}/><small>#collection membawa pengunjung ke produk.</small></label></div>
+ <label className="check"><input name="active" type="checkbox" defaultChecked={block?.active??true}/> Paparkan seksyen ini</label>
+ {message&&<p className="notice" role="status">{message}</p>}{error&&<p className="notice error" role="alert">{error}</p>}
+ <div className="row"><button disabled={busy}>{uploading?'Memuat naik gambar…':pending?'Menyimpan…':block?'Simpan perubahan':'Tambah seksyen'}</button>{block&&<button className="secondary" type="button" disabled={busy} onClick={()=>start(async()=>{setError('');try{const result=await archiveBlock(block.id);if(result.error)setError(result.error);else router.refresh();}catch{setError('Seksyen tidak dapat dibuang.');}})}>Buang dari halaman</button>}</div>
+ </form>;
+}
+export function SliderEditor({auto,seconds}:{auto:boolean;seconds:number}) {
+ const [pending,start]=useTransition();const [message,setMessage]=useState('');const [error,setError]=useState(false);
+ return <form className="card" action={form=>start(async()=>{try{const result=await saveSlider(form);setError(Boolean(result.error));setMessage(result.error??result.success??'');}catch{setError(true);setMessage('Tetapan tidak dapat disimpan.');}})}><h2>Pertukaran hero banner</h2><label className="check"><input type="checkbox" name="auto" defaultChecked={auto}/> Tukar banner secara automatik</label><label>Tempoh setiap banner (saat)<input type="number" name="seconds" min="3" max="15" step="1" defaultValue={seconds} required/></label><small>Jika auto dimatikan, pengunjung masih boleh swipe atau tekan anak panah. Slider automatik berhenti ketika interaksi dan menghormati tetapan kurangkan gerakan pada peranti.</small>{message&&<p className={`notice ${error?'error':''}`} role="status">{message}</p>}<button disabled={pending}>{pending?'Menyimpan…':'Simpan tetapan slider'}</button></form>;
+}

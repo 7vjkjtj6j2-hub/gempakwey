@@ -1,0 +1,17 @@
+.hq{max-width:1080px;margin:auto;padding:0 24px 64px;min-height:100svh}
+.hq header{padding:24px 0}.hq header a{font-weight:800}.hq header span{font-size:13px}
+.hq main{padding:40px 0;display:block}.hq h1{font-size:clamp(32px,6vw,56px);letter-spacing:-2px;margin:12px 0 24px;line-height:1.1}
+.hq h2{font-size:24px;letter-spacing:-.5px}.hq p{line-height:1.65}.hq small{line-height:1.5;color:#52604e}
+.hq .card{background:white;border:1px solid #20271d30;border-radius:16px;padding:28px;margin:20px 0}
+.hq .narrow{max-width:500px;margin:48px auto}.hq form{display:grid;gap:18px}.hq label{display:grid;gap:8px;font-size:14px;font-weight:600}
+.hq input,.hq textarea,.hq select{width:100%;padding:12px;border:1px solid #8c9488;border-radius:6px;background:white;color:#20271d;font:inherit}
+.hq textarea{resize:vertical;min-height:120px}.hq button,.hq .button{display:inline-block;border:0;border-radius:6px;padding:13px 20px;background:#20271d;color:white;font:inherit;font-weight:700;cursor:pointer;text-align:center}
+.hq button:disabled{opacity:.55;cursor:wait}.hq .secondary{background:#e8ecdf;color:#20271d}
+.hq .notice{padding:14px 18px;background:#edf3df;border-radius:8px}.hq .error{background:#fff0eb;color:#912d13}
+.hq .row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.hq .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.hq .scroll{overflow:auto}.hq table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}.hq th,.hq td{padding:16px 10px;border-bottom:1px solid #e0e4da}.hq td small{display:block}
+.hq .badge{display:inline-block;font-size:12px;border-radius:30px;background:#edf3df;padding:5px 10px}.hq a:focus-visible,.hq button:focus-visible,.hq input:focus-visible,.hq textarea:focus-visible{outline:3px solid #718c2d;outline-offset:3px}
+@media(max-width:600px){.hq .grid{grid-template-columns:1fr}.hq .card{padding:20px}.hq header{align-items:flex-start}.hq{padding:0 18px 40px}}
+.hq .check{display:flex;align-items:center;gap:12px}.hq .check input{width:20px;height:20px}.hq .upload-preview img{display:block;width:100%;max-height:180px;object-fit:contain;background:#eee;margin:10px 0}.hq .image-upload{min-width:0}.hq input[type=file]{font-size:13px}.hq .block-editor h2{margin:0}
+
+.hq-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}.hq .hq-filters{display:flex;gap:16px;align-items:end;flex-wrap:wrap;border-bottom:1px solid #ddd;padding-bottom:24px;margin-bottom:24px}.hq-filters label{flex:1;min-width:180px}.empty-hq{padding:24px 0;max-width:580px}.hq .address{white-space:pre-line}.hq .order-lines{margin-bottom:24px}
